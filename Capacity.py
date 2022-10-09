@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 
 ## Gaussian Inputs
-def Gaussian_Capacity(chan_type, SNR_range, sim_num=0):
+def Gaussian_Capacity(chan_type, SNR_range, sim_num=10000):
 
     if chan_type == "awgn":
 
@@ -35,7 +35,11 @@ def Gaussian_Capacity(chan_type, SNR_range, sim_num=0):
 
 
 ## Finite Alphabet Inputs (CM)
-def CM_Capacity(conste_symbols, chan_type, SNR_range, sim_num):
+def CM_Capacity(conste_symbols, chan_type, SNR_range, ssd=(False, 0), sim_num=10000):
+
+    # constellation rotation in signal space diversity
+    if ssd[0]:
+        conste_symbols *= np.exp(1j * ssd[1] / 180 * np.pi)
 
     # modulation order
     M = conste_symbols.size
@@ -70,12 +74,19 @@ def CM_Capacity(conste_symbols, chan_type, SNR_range, sim_num):
 
     # channel realizations
     if chan_type == "awgn":
-        h = 1
+        hI = hQ = 1
     elif chan_type == "rayleigh":
-        h = np.sqrt(1 / 2) * (
+        hI = np.sqrt(1 / 2) * (
             torch.randn(sim_num, 1, dtype=torch.float32, device=device)
             + 1j * torch.randn(sim_num, 1, dtype=torch.float32, device=device)
         )
+        if ssd[0]:
+            hQ = np.sqrt(1 / 2) * (
+                torch.randn(sim_num, 1, dtype=torch.float32, device=device)
+                + 1j * torch.randn(sim_num, 1, dtype=torch.float32, device=device)
+            )
+        else:
+            hQ = hI
     else:
         print("Unsupported channel type!")
         exit()
@@ -88,8 +99,14 @@ def CM_Capacity(conste_symbols, chan_type, SNR_range, sim_num):
         # signal power
         Ps = SNR * sym_dim * 0.5
 
+        sym_dists_I = np.sqrt(Ps) * sym_dists.real
+        sym_dists_Q = np.sqrt(Ps) * sym_dists.imag
+
         metric = torch.exp(
-            -abs(awgn + h * sym_dists * np.sqrt(Ps)).reshape(sim_num, M, M) ** 2
+            -abs(awgn + abs(hI) * sym_dists_I + abs(hQ) * sym_dists_Q).reshape(
+                sim_num, M, M
+            )
+            ** 2
         )
 
         tmp = torch.log2(metric.sum(axis=2))
@@ -101,7 +118,12 @@ def CM_Capacity(conste_symbols, chan_type, SNR_range, sim_num):
 
 
 ## Finite Alphabet Inputs (BICM)
-def BICM_Capacity(conste_symbols, conste_labels, chan_type, SNR_range, sim_num):
+def BICM_Capacity(
+    conste_symbols, conste_labels, chan_type, SNR_range, ssd=(False, 0), sim_num=10000
+):
+    # constellation rotation in signal space diversity
+    if ssd[0]:
+        conste_symbols *= np.exp(1j * ssd[1] / 180 * np.pi)
 
     # modulation order
     M = conste_symbols.size
@@ -137,14 +159,20 @@ def BICM_Capacity(conste_symbols, conste_labels, chan_type, SNR_range, sim_num):
             + 1j * torch.randn(sim_num, 1, dtype=torch.float32, device=device)
         )
 
-    # channel realizations
     if chan_type == "awgn":
-        h = 1
+        hI = hQ = 1
     elif chan_type == "rayleigh":
-        h = np.sqrt(1 / 2) * (
+        hI = np.sqrt(1 / 2) * (
             torch.randn(sim_num, 1, dtype=torch.float32, device=device)
             + 1j * torch.randn(sim_num, 1, dtype=torch.float32, device=device)
         )
+        if ssd[0]:
+            hQ = np.sqrt(1 / 2) * (
+                torch.randn(sim_num, 1, dtype=torch.float32, device=device)
+                + 1j * torch.randn(sim_num, 1, dtype=torch.float32, device=device)
+            )
+        else:
+            hQ = hI
     else:
         print("Unsupported channel type!")
         exit()
@@ -157,8 +185,14 @@ def BICM_Capacity(conste_symbols, conste_labels, chan_type, SNR_range, sim_num):
         # signal power
         Ps = SNR * sym_dim * 0.5
 
+        sym_dists_I = np.sqrt(Ps) * sym_dists.real
+        sym_dists_Q = np.sqrt(Ps) * sym_dists.imag
+
         metric = torch.exp(
-            -abs(awgn + h * sym_dists * np.sqrt(Ps)).reshape(sim_num, M, M) ** 2
+            -abs(awgn + abs(hI) * sym_dists_I + abs(hQ) * sym_dists_Q).reshape(
+                sim_num, M, M
+            )
+            ** 2
         )
 
         for k in range(K):
@@ -178,3 +212,23 @@ def BICM_Capacity(conste_symbols, conste_labels, chan_type, SNR_range, sim_num):
     capacity = bit_capacity.sum(axis=1)
 
     return bit_capacity, capacity
+
+
+def getCapacity(
+    conste_symbols,
+    conste_labels,
+    chan_type,
+    CM_type,
+    SNR_range,
+    ssd=(False, 0),
+    sim_num=10000,
+):
+    if CM_type == "gaussian":
+        return Gaussian_Capacity(chan_type, SNR_range, sim_num)
+    elif CM_type == "CM":
+        return CM_Capacity(conste_symbols, chan_type, SNR_range, ssd, sim_num)
+    else:
+        return BICM_Capacity(
+            conste_symbols, conste_labels, chan_type, SNR_range, ssd, sim_num,
+        )
+
