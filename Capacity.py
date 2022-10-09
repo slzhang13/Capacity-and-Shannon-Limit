@@ -2,6 +2,7 @@
 import numpy as np
 import torch
 from tqdm import tqdm
+from Modulation import de2bi
 
 
 ## Gaussian Inputs
@@ -124,6 +125,8 @@ def BICM_Capacity(
     # constellation rotation in signal space diversity
     if ssd[0]:
         conste_symbols *= np.exp(1j * ssd[1] / 180 * np.pi)
+
+    conste_labels = de2bi(conste_labels)
 
     # modulation order
     M = conste_symbols.size
