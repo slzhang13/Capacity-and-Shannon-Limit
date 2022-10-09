@@ -166,13 +166,13 @@ def BICM_Capacity(conste_symbols, conste_labels, chan_type, SNR_range, sim_num):
             mask0 = np.array(np.ix_(conste_labels[:, k] == 0))
             mask1 = np.array(np.ix_(conste_labels[:, k] == 1))
 
-            p00 = torch.sum(metric[:, mask0.T, mask0], 1)
-            p10 = torch.sum(metric[:, mask1.T, mask0], 1)
-            p01 = torch.sum(metric[:, mask0.T, mask1], 1)
-            p11 = torch.sum(metric[:, mask1.T, mask1], 1)
+            p00 = torch.sum(metric[:, mask0.T, mask0], 2)
+            p01 = torch.sum(metric[:, mask0.T, mask1], 2)
+            p10 = torch.sum(metric[:, mask1.T, mask0], 2)
+            p11 = torch.sum(metric[:, mask1.T, mask1], 2)
 
-            tmp0 = torch.mean(torch.log2(1 + p10 / p00)).cpu().numpy()
-            tmp1 = torch.mean(torch.log2(1 + p01 / p11)).cpu().numpy()
+            tmp0 = torch.mean(torch.log2(1 + p01 / p00)).cpu().numpy()
+            tmp1 = torch.mean(torch.log2(1 + p10 / p11)).cpu().numpy()
             bit_capacity[i, k] = 1 - 0.5 * (tmp0 + tmp1)
 
     capacity = bit_capacity.sum(axis=1)
