@@ -1,32 +1,34 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import mpl_toolkits.axisartist as axisartist
+
+round_digit = 6
 
 
-def de2bi(dec_nums, K):
+def de2bi(dec_nums, K=0):
 
     # modulation order in current context
     M = dec_nums.size
+    if K == 0:
+        K = int(np.log2(M))
 
-    ret = np.zeros((M, K))
+    ret = np.zeros((M, K), dtype=np.int32)
 
     # for each decimal label
     for m in range(M):
         # for each bit
         for k in range(K):  # left-msb
-            ret[m, k] = (dec_nums[m] >> (K - 1 - k)) & 1
+            ret[m, k] = int((dec_nums[0, m] >> (K - 1 - k)) & 1)
 
     return ret
 
 
 def grayCoded(n):
     # return Gray-coded integer numbers 0~n-1
-    ret = np.zeros(n, dtype=np.int32)
+    ret = np.zeros((1, n), dtype=np.int32)
 
     for i in range(n):
-        ret[i] = i ^ (i >> 1)
+        ret[0, i] = i ^ (i >> 1)
 
-    return ret.reshape(1, n)
+    return ret
 
 
 def normalizeConste(symbols):
@@ -39,9 +41,10 @@ def normalizeConste(symbols):
 
 
 def PSK(M, labeling="gray"):
+    # start from point (1, 0), anti-clockwise
 
     symbols = np.exp(1j * 2 * np.pi / M * np.arange(M)).reshape(1, M)
-    labels = grayCoded(M).reshape(1, M)
+    labels = grayCoded(M)
 
     if labeling == "gray":
         pass
@@ -51,12 +54,21 @@ def PSK(M, labeling="gray"):
         print("Unsupported labeling name! Gray labeling is used instead.")
         print("But you can customize the labeling with a vector outside this function.")
 
+    symbols = symbols.round(round_digit)  # 1-D/2-D justification！！！
+
     return symbols, labels
 
 
 def QAM(M, labeling="gray"):
+    # rightwards and downwards
 
-    MI, MQ = M[0], M[1]
+    if isinstance(M, int):
+        MI = MQ = int(np.sqrt(M))
+    elif isinstance(M, tuple):
+        MI, MQ = M[0], M[1]
+        M = MI * MQ
+    else:
+        pass
 
     I_symbols = np.array([np.arange(-MI + 1, MI + 1, 2)])
     Q_symbols = -1j * np.array([np.arange(-MQ + 1, MQ + 1, 2)]).T
@@ -81,10 +93,13 @@ def QAM(M, labeling="gray"):
         print("Unsupported labeling name! Gray labeling is used instead.")
         print("But you can customize the labeling with a vector outside this function.")
 
+    symbols = symbols.round(round_digit)  # 1-D/2-D justification！！！
+
     return symbols, labels
 
 
 def PAM(M, labeling="gray"):
+    # rightwards
 
     symbols = np.array([np.arange(-M + 1, M + 1, 2)])
     labels = grayCoded(M)
@@ -102,52 +117,7 @@ def PAM(M, labeling="gray"):
         print("Unsupported labeling name! Gray labeling is used instead.")
         print("But you can customize the labeling with a vector outside this function.")
 
+    symbols = symbols.round(round_digit)  # 1-D/2-D justification！！！
+
     return symbols, labels
-
-
-def showConsteDiagram(symbols, labels, show_labels=True):
-
-    M = symbols.size
-
-    labels = de2bi(labels)
-
-    fig = plt.figure("Normalized Constellation Diagram", (10, 10))
-    ax = axisartist.Subplot(fig, 1, 1, 1)
-    fig.add_axes(ax)
-    ax.axis[:].set_visible(False)
-    ax.axis["x"] = ax.new_floating_axis(0, 0)
-    ax.axis["y"] = ax.new_floating_axis(1, 0)
-    ax.axis["x"].set_axis_direction("top")
-    ax.axis["y"].set_axis_direction("left")
-    ax.axis["x"].set_axisline_style("-|>", size=2.0)
-    ax.axis["y"].set_axisline_style("-|>", size=2.0)
-    ax.axis["x"].line.set_linewidth(2)
-    ax.axis["y"].line.set_linewidth(2)
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-    label_font = {
-        "family": "Times New Roman",
-        "weight": "light",
-        "size": 15,
-    }
-
-    for i in range(M):
-
-        symbol, label = symbols[i], labels[i]
-
-        label_string = ""  # 得到标识对应的字符串
-        for i in range(len(label)):
-            label_string += str(label[i])
-
-        ax.scatter(symbol.real, symbol.imag, s=80, c="k")
-
-        if show_labels:
-            ax.text(
-                symbol.real - 0.03,
-                symbol.imag + 0.03,
-                label_string,
-                fontdict=label_font,
-                color="k",
-            )
 

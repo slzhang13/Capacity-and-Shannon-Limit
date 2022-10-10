@@ -104,7 +104,7 @@ def CM_Capacity(conste_symbols, chan_type, SNR_range, ssd=(False, 0), sim_num=10
         sym_dists_Q = np.sqrt(Ps) * sym_dists.imag
 
         metric = torch.exp(
-            -abs(awgn + abs(hI) * sym_dists_I + abs(hQ) * sym_dists_Q).reshape(
+            -abs(awgn + abs(hI) * sym_dists_I + 1j * abs(hQ) * sym_dists_Q).reshape(
                 sim_num, M, M
             )
             ** 2
@@ -192,7 +192,7 @@ def BICM_Capacity(
         sym_dists_Q = np.sqrt(Ps) * sym_dists.imag
 
         metric = torch.exp(
-            -abs(awgn + abs(hI) * sym_dists_I + abs(hQ) * sym_dists_Q).reshape(
+            -abs(awgn + abs(hI) * sym_dists_I + 1j * abs(hQ) * sym_dists_Q).reshape(
                 sim_num, M, M
             )
             ** 2
@@ -217,21 +217,10 @@ def BICM_Capacity(
     return bit_capacity, capacity
 
 
-def getCapacity(
-    conste_symbols,
-    conste_labels,
-    chan_type,
-    CM_type,
-    SNR_range,
-    ssd=(False, 0),
-    sim_num=10000,
-):
-    if CM_type == "gaussian":
-        return Gaussian_Capacity(chan_type, SNR_range, sim_num)
-    elif CM_type == "CM":
-        return CM_Capacity(conste_symbols, chan_type, SNR_range, ssd, sim_num)
+def capacity_ebn0(SNR_range, capacity, dim=2):
+    if dim == 2:
+        EbN0 = SNR_range - 10 * np.log10(capacity)
     else:
-        return BICM_Capacity(
-            conste_symbols, conste_labels, chan_type, SNR_range, ssd, sim_num,
-        )
+        EbN0 = SNR_range - 10 * np.log10(capacity * 2)
+    return EbN0
 

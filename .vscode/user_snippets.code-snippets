@@ -1,0 +1,176 @@
+{
+	"QAM": {
+		"prefix": "qam",
+		"body": [
+		  "symbols, labels = QAM(M, labeling=\"$1\")"
+		],
+		"description": "QAM"
+	  },
+	  "PSK": {
+		"prefix": "psk",
+		"body": [
+		  "symbols, labels = PSK(M, labeling=\"$1\")"
+		],
+		"description": "PSK"
+	  },
+	  "PAM": {
+		"prefix": "pam",
+		"body": [
+		  "symbols, labels = PAM(M, labeling=\"$1\")"
+		],
+		"description": "PAM"
+	  },
+	  "SNR range": {
+		"prefix": "snr",
+		"body": [
+		  "# SNR range (dB)",
+		  "SNR_start, SNR_step, SNR_end = $1, $2, $3",
+		  "SNR_range = np.arange(SNR_start, SNR_end, SNR_step)"
+		],
+		"description": "SNR range"
+	  },
+	  "awgn channel": {
+		"prefix": "chan",
+		"body": [
+		  "chan_type = \"awgn\""
+		],
+		"description": "awgn channel"
+	  },
+	  "rayleigh channel": {
+		"prefix": "chan",
+		"body": [
+		  "chan_type = \"rayleigh\""
+		],
+		"description": "rayleigh channel"
+	  },
+	  "sim_num": {
+		"prefix": "sim",
+		"body": [
+		  "sim_num = 100000$1"
+		],
+		"description": "sim_num"
+	  },
+	  "plot ": {
+		"prefix": "plt",
+		"body": [
+		  "fig = plt.figure()",
+		  "plt.grid()",
+		  "",
+		  "plt.plot(",
+		  "    $1,",
+		  "    $2,",
+		  "    linewidth=1.0,",
+		  "    linestyle=\"-\",",
+		  "    color=\"$3\",",
+		  "    label=\"$4\",",
+		  "    marker=\"$5\",",
+		  "    markersize=$6,",
+		  ")",
+		  "plt.xlabel(\"\")",
+		  "plt.ylabel(\"\")",
+		  "plt.legend(bbox_to_anchor=(1.04, 1), loc=\"upper left\")"
+		],
+		"description": "plot "
+	  },
+	  "signal space diversity": {
+		"prefix": "ssd",
+		"body": [
+		  "ssd = (False, 0)"
+		],
+		"description": "signal space diversity"
+	  },
+	  "Coded Modulation Type": {
+		"prefix": "cm",
+		"body": [
+		  "CM_type = 'BI$1CM'"
+		],
+		"description": "Coded Modulation Type"
+	  },
+	  "gaussian capacity": {
+		"prefix": "cap",
+		"body": [
+		  "capacity = Gaussian_Capacity(chan_type, SNR_range, sim_num)"
+		],
+		"description": "gaussian capacity"
+	  },
+	  "CM capacity": {
+		"prefix": "cap",
+		"body": [
+		  "capacity = CM_Capacity(conste_symbols, chan_type, SNR_range, ssd, sim_num)"
+		],
+		"description": "CM capacity"
+	  },
+	  "BICM capacity": {
+		"prefix": "cap",
+		"body": [
+		  "bit_capacity, capacity = BICM_Capacity(conste_symbols, conste_labels, chan_type, SNR_range, ssd, sim_num)"
+		],
+		"description": "BICM capacity"
+	  },
+	  "show constellation": {
+		"prefix": "conste",
+		"body": [
+		  "def showConsteDiagram(symbols, labels, show_labels=True):",
+		  "",
+		  "    M = symbols.size",
+		  "",
+		  "    labels = de2bi(labels, int(np.log2(M)))",
+		  "",
+		  "    fig = plt.figure(\"Normalized Constellation Diagram\", (10, 10))",
+		  "    ax = axisartist.Subplot(fig, 1, 1, 1)",
+		  "    fig.add_axes(ax)",
+		  "    ax.axis[:].set_visible(False)",
+		  "    ax.axis[\"x\"] = ax.new_floating_axis(0, 0)",
+		  "    ax.axis[\"y\"] = ax.new_floating_axis(1, 0)",
+		  "    ax.axis[\"x\"].set_axis_direction(\"top\")",
+		  "    ax.axis[\"y\"].set_axis_direction(\"left\")",
+		  "    ax.axis[\"x\"].set_axisline_style(\"-|>\", size=2.0)",
+		  "    ax.axis[\"y\"].set_axisline_style(\"-|>\", size=2.0)",
+		  "    ax.axis[\"x\"].line.set_linewidth(2)",
+		  "    ax.axis[\"y\"].line.set_linewidth(2)",
+		  "    ax.set_xticks([])",
+		  "    ax.set_yticks([])",
+		  "",
+		  "    label_font = {",
+		  "        \"family\": \"Times New Roman\",",
+		  "        \"weight\": \"light\",",
+		  "        \"size\": 15,",
+		  "    }",
+		  "",
+		  "    for i in range(M):",
+		  "",
+		  "        symbol, label = symbols[0, i], labels[i]",
+		  "",
+		  "        label_string = \"\"  # 得到标识对应的字符串",
+		  "        for i in range(len(label)):",
+		  "            label_string += str(label[i])",
+		  "",
+		  "        ax.scatter(symbol.real, symbol.imag, s=80, c=\"k\")",
+		  "",
+		  "        if show_labels:",
+		  "            ax.text(",
+		  "                symbol.real - 0.03,",
+		  "                symbol.imag + 0.03,",
+		  "                label_string,",
+		  "                fontdict=label_font,",
+		  "                color=\"k\",",
+		  "            )"
+		],
+		"description": "show constellation"
+	  },
+	  "import necessary packages": {
+		"prefix": "imp",
+		"body": [
+		  "import numpy as np",
+		  "import torch",
+		  "from tqdm import tqdm",
+		  "from matplotlib import pyplot as plt",
+		  "from Capacity import *",
+		  "from Modulation import *",
+		  "",
+		  "#%matplotlib inline",
+		  "#%config InlineBackend.figure_format = 'svg'"
+		],
+		"description": "import necessary packages"
+	  }
+}
