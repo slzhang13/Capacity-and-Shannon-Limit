@@ -5,6 +5,41 @@ from tqdm import tqdm
 from Modulation import de2bi
 
 
+def Gaussian_limit(chan_type, eta, sim_num=10000):
+    SNR_range = np.arange(-30, 0.5, 30)
+    cap_gaussian = Gaussian_Capacity(chan_type, SNR_range, sim_num)
+    SNR_th_gaussian = np.interp(eta, cap_gaussian, SNR_range)
+    EbN0_th_gaussian = snr2ebn0(SNR_th_gaussian, eta)
+
+    return (SNR_th_gaussian, EbN0_th_gaussian)
+
+
+def CM_limit(conste_symbols, chan_type, eta, ssd=(False, 0), sim_num=10000):
+    SNR_range = np.arange(-30, 0.5, 30)
+    cap_cm = CM_Capacity(conste_symbols, chan_type, SNR_range, ssd, sim_num)
+    SNR_th_cm = np.interp(eta, cap_cm, SNR_range)
+
+    sym_dim = 2 if np.imag(conste_symbols).any() else 1
+    EbN0_th_cm = snr2ebn0(SNR_th_cm, eta, sym_dim)
+
+    return (SNR_th_cm, EbN0_th_cm)
+
+
+def BICM_limit(
+    conste_symbols, conste_labels, chan_type, eta, ssd=(False, 0), sim_num=10000
+):
+    SNR_range = np.arange(-30, 0.5, 30)
+    cap_bicm = BICM_Capacity(
+        conste_symbols, conste_labels, chan_type, SNR_range, ssd, sim_num
+    )
+    SNR_th_bicm = np.interp(eta, cap_bicm, SNR_range)
+
+    sym_dim = 2 if np.imag(conste_symbols).any() else 1
+    EbN0_th_bicm = snr2ebn0(SNR_th_bicm, eta, sym_dim)
+
+    return (SNR_th_bicm, EbN0_th_bicm)
+
+
 ## Gaussian Inputs
 def Gaussian_Capacity(chan_type, SNR_range, sim_num=10000):
 
@@ -217,7 +252,7 @@ def BICM_Capacity(
     return bit_capacity, capacity
 
 
-def capacity_ebn0(SNR_range, capacity, dim=2):
+def snr2ebn0(SNR_range, capacity, dim=2):
     if dim == 2:
         EbN0 = SNR_range - 10 * np.log10(capacity)
     else:
