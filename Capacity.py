@@ -6,7 +6,7 @@ from Modulation import de2bi
 
 
 def Gaussian_limit(chan_type, eta, sim_num=10000):
-    SNR_range = np.arange(-30, 0.5, 30)
+    SNR_range = np.arange(-30, 30, 0.5)
     cap_gaussian = Gaussian_Capacity(chan_type, SNR_range, sim_num)
     SNR_th_gaussian = np.interp(eta, cap_gaussian, SNR_range)
     EbN0_th_gaussian = snr2ebn0(SNR_th_gaussian, eta)
@@ -15,7 +15,7 @@ def Gaussian_limit(chan_type, eta, sim_num=10000):
 
 
 def CM_limit(conste_symbols, chan_type, eta, ssd=(False, 0), sim_num=10000):
-    SNR_range = np.arange(-30, 0.5, 30)
+    SNR_range = np.arange(-30, 30, 0.5)
     cap_cm = CM_Capacity(conste_symbols, chan_type, SNR_range, ssd, sim_num)
     SNR_th_cm = np.interp(eta, cap_cm, SNR_range)
 
@@ -28,7 +28,7 @@ def CM_limit(conste_symbols, chan_type, eta, ssd=(False, 0), sim_num=10000):
 def BICM_limit(
     conste_symbols, conste_labels, chan_type, eta, ssd=(False, 0), sim_num=10000
 ):
-    SNR_range = np.arange(-30, 0.5, 30)
+    SNR_range = np.arange(-30, 30, 0.5)
     cap_bicm = BICM_Capacity(
         conste_symbols, conste_labels, chan_type, SNR_range, ssd, sim_num
     )
